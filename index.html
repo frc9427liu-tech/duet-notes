@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Duet Notes</title>
+<link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-180.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Duet Notes"><meta name="theme-color" content="#0a84ff">
+<style>
+:root{--bg:#fff;--side:#f6f6f7;--fg:#1d1d1f;--mut:#86868b;--line:#e5e5ea;--acc:#0a84ff;--hov:#00000010;--card:#fff;--code:#f2f2f4}
+@media (prefers-color-scheme:dark){:root:not([data-t=light]){--bg:#1c1c1e;--side:#252528;--fg:#f2f2f7;--mut:#98989d;--line:#3a3a3c;--hov:#ffffff14;--card:#2c2c2e;--code:#2c2c2e}}
+:root[data-t=dark]{--bg:#1c1c1e;--side:#252528;--fg:#f2f2f7;--mut:#98989d;--line:#3a3a3c;--hov:#ffffff14;--card:#2c2c2e;--code:#2c2c2e}
+*{box-sizing:border-box}body{margin:0;font:15px/1.6 -apple-system,"SF Pro Text","Segoe UI","Microsoft JhengHei",sans-serif;background:var(--bg);color:var(--fg);display:flex;height:100vh;overflow:hidden}
+#side{width:260px;background:var(--side);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:12px 8px}
+#side h4{margin:14px 8px 4px;font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.06em}
+#search{margin:4px 6px 8px;padding:7px 10px;border-radius:9px;border:1px solid var(--line);background:var(--bg);color:var(--fg);outline:0}
+.pg{display:flex;align-items:center;gap:4px;padding:3px 8px;border-radius:7px;cursor:pointer;font-size:14px;white-space:nowrap}
+.pg:hover{background:var(--hov)}.pg.on{background:var(--hov);font-weight:600}.pg .t{overflow:hidden;text-overflow:ellipsis;flex:1}
+.pg .x{opacity:0;color:var(--mut);padding:0 4px}.pg:hover .x{opacity:1}.pg .arr{width:14px;color:var(--mut);font-size:10px}
+#tree{overflow:auto;flex:1}.btn{border:0;background:transparent;color:var(--mut);cursor:pointer;padding:6px 8px;border-radius:7px;text-align:left;font:inherit}.btn:hover{background:var(--hov);color:var(--fg)}
+#main{flex:1;overflow:auto;position:relative}#doc{max-width:820px;margin:0 auto;padding:50px 48px 200px}
+#top{position:sticky;top:0;display:flex;gap:6px;justify-content:flex-end;padding:8px 14px;background:var(--bg);z-index:5;font-size:13px;color:var(--mut);border-bottom:1px solid transparent}
+#title{font-size:38px;font-weight:700;outline:0;margin:6px 0 14px;min-height:50px}#title:empty:before{content:"無標題";color:var(--mut)}
+.blk{display:flex;gap:6px;align-items:flex-start;position:relative;padding:1px 0}.blk .h{opacity:0;width:20px;color:var(--mut);cursor:grab;user-select:none;font-size:13px;padding-top:3px}.blk:hover .h{opacity:1}
+.ed{flex:1;outline:0;min-height:1.6em;white-space:pre-wrap;word-break:break-word}.ed:empty:before{content:attr(data-ph);color:var(--mut);opacity:.0}.ed:focus:empty:before{opacity:.7}
+.h1 .ed{font-size:30px;font-weight:700;line-height:1.3;margin-top:18px}.h2 .ed{font-size:24px;font-weight:650;margin-top:12px}.h3 .ed{font-size:19px;font-weight:600;margin-top:8px}
+.quote .ed{border-left:3px solid var(--fg);padding-left:14px}.callout{background:var(--code);border-radius:10px;padding:10px 12px;margin:4px 0}
+.code .ed{font:13px/1.5 Consolas,monospace;background:var(--code);padding:12px 14px;border-radius:9px}.divider hr{flex:1;border:0;border-top:1px solid var(--line);margin:12px 0}
+.todo input{margin-top:6px;accent-color:var(--acc);width:16px;height:16px}.todo.done .ed{text-decoration:line-through;color:var(--mut)}
+.bul:before{content:"•";width:14px;text-align:center}.num:before{content:attr(data-n) ".";min-width:20px;color:var(--mut)}
+#slash{position:fixed;background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 40px #0004;width:250px;max-height:320px;overflow:auto;padding:6px;display:none;z-index:20}
+#slash div{padding:6px 10px;border-radius:7px;cursor:pointer;font-size:14px}#slash div.sel,#slash div:hover{background:var(--acc);color:#fff}
+.db{width:100%;border:1px solid var(--line);border-radius:10px;overflow:auto;margin:6px 0}.db .bar{display:flex;gap:8px;padding:6px 10px;border-bottom:1px solid var(--line);font-size:13px;color:var(--mut);align-items:center}
+.db table{border-collapse:collapse;width:100%}.db th,.db td{border-bottom:1px solid var(--line);border-right:1px solid var(--line);padding:4px 8px;text-align:left;font-size:14px;min-width:90px}.db th{color:var(--mut);font-weight:500;font-size:12px}
+.db td[contenteditable]{outline:0}.db select,.db input[type=date],.db input[type=number]{background:transparent;color:var(--fg);border:0;font:inherit;width:100%}
+.board{display:flex;gap:10px;padding:10px;overflow:auto}.col{min-width:200px;background:var(--code);border-radius:10px;padding:8px}.col h5{margin:0 0 6px;font-size:12px;color:var(--mut)}.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:7px 9px;margin-bottom:6px;font-size:14px;cursor:grab}
+#modal{position:fixed;inset:0;background:#0006;display:none;align-items:center;justify-content:center;z-index:30}#modal .box{background:var(--card);border-radius:14px;padding:18px;width:min(560px,92vw);max-height:80vh;overflow:auto}
+.vrow{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line);font-size:14px}.chip{display:inline-block;background:var(--code);border-radius:6px;padding:0 7px;font-size:12px;margin-right:4px}
+.plink{color:var(--acc);cursor:pointer;text-decoration:underline}
+
+#recbar{position:fixed;left:50%;transform:translateX(-50%);bottom:max(16px,env(safe-area-inset-bottom));z-index:15;display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:30px;padding:8px 10px 8px 14px;box-shadow:0 8px 30px #0003;max-width:94vw}
+#recbar button,#recbar select{border:0;border-radius:22px;padding:8px 14px;font:inherit;cursor:pointer;background:var(--code);color:var(--fg)}
+#recbar .go{background:var(--acc);color:#fff}#recbar .stop{background:#ff3b30;color:#fff}#recbar .dot{width:9px;height:9px;border-radius:50%;background:#ff3b30;animation:bl 1s infinite}
+@keyframes bl{50%{opacity:.2}}#wave{width:110px;height:28px}#tm{font-variant-numeric:tabular-nums;color:var(--mut);font-size:13px}
+#tx{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(max(16px,env(safe-area-inset-bottom)) + 62px);width:min(640px,92vw);max-height:34vh;overflow:auto;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px;font-size:14px;box-shadow:0 8px 30px #0003;z-index:14;display:none;white-space:pre-wrap}
+#tx i{color:var(--mut)}#menu{display:none}
+@media (max-width:760px){body{height:100dvh}#side{position:fixed;left:0;top:0;bottom:0;width:82vw;z-index:40;transform:translateX(-102%);transition:transform .2s;box-shadow:8px 0 30px #0004}body.sopen #side{transform:none}#menu{display:inline-block;margin-right:auto}#doc{padding:24px 16px 220px}#title{font-size:30px}.blk .h{display:none}.pg{padding:8px}.pg .x{opacity:1}}
+</style></head><body>
+<div id="side"><input id="search" placeholder="搜尋(Ctrl+K)"><div id="tree"></div>
+<button class="btn" id="newp">＋ 新增頁面</button><button class="btn" id="tmpl">▦ 從範本新增</button>
+<button class="btn" id="exp">⇩ 匯出全部(JSON)</button><button class="btn" id="expmd">⇩ 匯出此頁(Markdown)</button><button class="btn" id="imp">⇧ 匯入 JSON</button><button class="btn" id="theme">◐ 深色/淺色</button></div>
+<div id="main"><div id="top"><button class="btn" id="menu">☰</button><span id="saved">已儲存</span><button class="btn" id="fav">☆ 我的最愛</button><button class="btn" id="hist">⟲ 版本歷史</button><button class="btn" id="gset">⚙ AI 金鑰</button><button class="btn" id="del">🗑 刪除</button></div><div id="doc"><div id="title" contenteditable="plaintext-only"></div><div id="blocks"></div></div></div>
+<div id="tx"></div><div id="recbar"></div><div id="slash"></div><div id="modal"><div class="box" id="mbox"></div></div><input type="file" id="file" accept=".json" style="display:none">
+<script>
+const $=s=>document.querySelector(s),uid=()=>Math.random().toString(36).slice(2,10);
+let S;try{S=JSON.parse(localStorage.getItem('duetnotes')||'null')}catch(e){}
+if(!S){S={pages:{},order:[],cur:null,hist:{}};const id=uid();S.pages[id]={id,title:'歡迎使用 Duet Notes',icon:'📝',parent:null,fav:true,exp:true,blocks:[b('h2','這是你自己的 Notion'),b('text','輸入 / 叫出選單,試試標題、待辦、資料庫、提示框。'),b('todo','左邊「＋ 新增頁面」可以建立子頁面'),b('todo','⟲ 版本歷史可以還原舊版本'),b('callout','資料只存在這台電腦,可匯出 JSON 備份。')]};S.order=[id];S.cur=id}
+function b(type,text){return{id:uid(),type,text:text||'',checked:false}}
+let dirtyT,lastSnap={};function save(){$('#saved').textContent='儲存中…';clearTimeout(dirtyT);dirtyT=setTimeout(()=>{try{localStorage.setItem('duetnotes',JSON.stringify(S))}catch(e){alert('儲存空間滿了,請匯出備份')}$('#saved').textContent='已儲存';snap()},400)}
+function snap(){const p=cur();if(!p)return;const now=Date.now();if(now-(lastSnap[p.id]||0)<30000)return;lastSnap[p.id]=now;const h=S.hist[p.id]=S.hist[p.id]||[];const s=JSON.stringify({t:p.title,b:p.blocks});if(h.length&&h[h.length-1].s===s)return;h.push({at:now,s});if(h.length>30)h.shift();try{localStorage.setItem('duetnotes',JSON.stringify(S))}catch(e){}}
+const cur=()=>S.pages[S.cur];
+function addPage(parent,tpl){const id=uid();S.pages[id]={id,title:tpl?tpl.title:'',icon:tpl?tpl.icon:'📄',parent:parent||null,blocks:tpl?tpl.blocks():[b('text')],exp:true};S.order.push(id);if(parent)S.pages[parent].exp=true;S.cur=id;render();save();setTimeout(()=>$('#title').focus(),30)}
+function delPage(id){const kids=S.order.filter(k=>S.pages[k].parent===id);kids.forEach(delPage);delete S.pages[id];S.order=S.order.filter(k=>k!==id);delete S.hist[id];if(S.cur===id)S.cur=S.order[0]||null;if(!S.cur){addPage();return}}
+function tree(){const q=$('#search').value.trim().toLowerCase();const T=$('#tree');T.innerHTML='';
+ if(q){S.order.map(i=>S.pages[i]).filter(p=>(p.title+' '+p.blocks.map(x=>x.text+' '+(x.rows?JSON.stringify(x.rows):'')).join(' ')).toLowerCase().includes(q)).forEach(p=>T.appendChild(row(p,0)));return}
+ const favs=S.order.map(i=>S.pages[i]).filter(p=>p.fav);if(favs.length){T.insertAdjacentHTML('beforeend','<h4>我的最愛</h4>');favs.forEach(p=>T.appendChild(row(p,0,true)))}
+ T.insertAdjacentHTML('beforeend','<h4>頁面</h4>');(function walk(par,d){S.order.map(i=>S.pages[i]).filter(p=>p.parent===par).forEach(p=>{T.appendChild(row(p,d));if(p.exp)walk(p.id,d+1)})})(null,0)}
+function row(p,d,nofold){const hasKids=S.order.some(k=>S.pages[k].parent===p.id);const r=document.createElement('div');r.className='pg'+(p.id===S.cur?' on':'');r.style.paddingLeft=(8+d*16)+'px';
+ r.innerHTML=`<span class="arr">${nofold?'':hasKids?(p.exp?'▾':'▸'):''}</span><span>${p.icon||'📄'}</span><span class="t">${esc(p.title||'無標題')}</span><span class="x" title="新增子頁面">＋</span>`;
+ r.onclick=e=>{if(e.target.className==='x'){addPage(p.id);return}if(e.target.className==='arr'){p.exp=!p.exp;tree();save();return}S.cur=p.id;document.body.classList.remove('sopen');render()};return r}
+const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const MENU=[['text','文字'],['h1','標題 1'],['h2','標題 2'],['h3','標題 3'],['todo','待辦清單'],['bul','項目符號'],['num','編號清單'],['quote','引用'],['callout','提示框'],['code','程式碼'],['divider','分隔線'],['db','資料庫(表格/看板)'],['link','頁面連結'],['rec','🎙 會議錄音(新頁面)']];
+function render(){const p=cur();if(!p)return;$('#title').textContent=p.title;document.title=(p.title||'無標題')+' · Duet Notes';$('#fav').textContent=(p.fav?'★':'☆')+' 我的最愛';tree();const B=$('#blocks');B.innerHTML='';let n=0;p.blocks.forEach((bl,i)=>{n=bl.type==='num'?n+1:0;B.appendChild(blockEl(bl,i,n))})}
+function blockEl(bl,i,n){const d=document.createElement('div');d.className='blk '+bl.type+(bl.checked?' done':'');d.dataset.id=bl.id;d.draggable=false;
+ const h=document.createElement('span');h.className='h';h.textContent='⋮⋮';h.draggable=true;h.ondragstart=e=>{e.dataTransfer.setData('t',bl.id)};d.appendChild(h);
+ d.ondragover=e=>e.preventDefault();d.ondrop=e=>{const id=e.dataTransfer.getData('t');if(!id||id===bl.id)return;const p=cur(),a=p.blocks.findIndex(x=>x.id===id),t=p.blocks.findIndex(x=>x.id===bl.id);const [m]=p.blocks.splice(a,1);p.blocks.splice(t,0,m);render();save()};
+ if(bl.type==='divider'){d.appendChild(document.createElement('hr'));return d}
+ if(bl.type==='db'){d.appendChild(dbEl(bl));return d}
+ if(bl.type==='link'){const a=document.createElement('span');a.className='plink';const t=S.pages[bl.text];a.textContent=t?'📄 '+(t.title||'無標題'):'(選擇頁面)';a.onclick=()=>{if(t){S.cur=t.id;render()}else pickPage(bl)};d.appendChild(a);return d}
+ if(bl.type==='todo'){const c=document.createElement('input');c.type='checkbox';c.checked=bl.checked;c.onchange=()=>{bl.checked=c.checked;d.classList.toggle('done',c.checked);save()};d.appendChild(c)}
+ if(bl.type==='num')d.dataset.n=n;
+ const e=document.createElement('div');e.className='ed';e.contentEditable='plaintext-only';e.dataset.ph=bl.type==='text'?"輸入 / 叫出選單":'';e.textContent=bl.text;
+ if(bl.type==='callout'){d.classList.add('callout')}
+ e.oninput=()=>{bl.text=e.textContent;if(bl.type==='text'){const m=md(bl,e);if(m)return}const s=e.textContent;if(s==='/'||/^\/\S*$/.test(s))openSlash(bl,e);else closeSlash();save()};
+ e.onkeydown=ev=>keyh(ev,bl,e,i);d.appendChild(e);return d}
+function md(bl,e){const s=e.textContent,M=[['# ','h1'],['## ','h2'],['### ','h3'],['- ','bul'],['* ','bul'],['[] ','todo'],['> ','quote'],['1. ','num'],['``` ','code']];for(const[k,t]of M)if(s===k){bl.type=t;bl.text='';render();focusBlock(bl.id);save();return true}if(s==='---'){bl.type='divider';bl.text='';const p=cur();p.blocks.splice(p.blocks.indexOf(bl)+1,0,b('text'));render();save();focusBlock(p.blocks[p.blocks.indexOf(bl)+1].id);return true}return false}
+function focusBlock(id,end){const el=document.querySelector(`.blk[data-id="${id}"] .ed`);if(el){el.focus();const r=document.createRange();r.selectNodeContents(el);r.collapse(!end);const s=getSelection();s.removeAllRanges();s.addRange(r)}}
+function keyh(ev,bl,e,i){const p=cur();
+ if(sl.on){if(ev.key==='ArrowDown'){sl.i=(sl.i+1)%sl.list.length;drawSlash();ev.preventDefault();return}if(ev.key==='ArrowUp'){sl.i=(sl.i+sl.list.length-1)%sl.list.length;drawSlash();ev.preventDefault();return}if(ev.key==='Enter'){ev.preventDefault();pick(sl.list[sl.i][0]);return}if(ev.key==='Escape'){closeSlash();return}}
+ if(ev.key==='Enter'&&!ev.shiftKey&&bl.type!=='code'){ev.preventDefault();if(!bl.text&&['todo','bul','num','quote','callout'].includes(bl.type)){bl.type='text';render();focusBlock(bl.id);save();return}const nb=b(['todo','bul','num'].includes(bl.type)?bl.type:'text');p.blocks.splice(i+1,0,nb);render();focusBlock(nb.id);save()}
+ else if(ev.key==='Backspace'&&!e.textContent){ev.preventDefault();if(bl.type!=='text'){bl.type='text';render();focusBlock(bl.id);save();return}if(p.blocks.length>1){p.blocks.splice(i,1);render();const pv=p.blocks[Math.max(0,i-1)];focusBlock(pv.id,true);save()}}
+ else if(ev.key==='ArrowUp'&&ev.altKey&&i>0){ev.preventDefault();[p.blocks[i-1],p.blocks[i]]=[p.blocks[i],p.blocks[i-1]];render();focusBlock(bl.id,true);save()}
+ else if(ev.key==='ArrowDown'&&ev.altKey&&i<p.blocks.length-1){ev.preventDefault();[p.blocks[i+1],p.blocks[i]]=[p.blocks[i],p.blocks[i+1]];render();focusBlock(bl.id,true);save()}
+ else if(ev.key==='ArrowUp'&&i>0&&caretAt(e,0)){ev.preventDefault();focusBlock(p.blocks[i-1].id,true)}
+ else if(ev.key==='ArrowDown'&&i<p.blocks.length-1&&caretAt(e,1)){ev.preventDefault();focusBlock(p.blocks[i+1].id)}}
+function caretAt(e,end){const s=getSelection();if(!s.rangeCount)return false;const r=s.getRangeAt(0);return end?(r.endOffset===(e.textContent||'').length||!e.textContent):r.startOffset===0}
+const sl={on:false,i:0,list:[],bl:null,e:null};
+function openSlash(bl,e){const q=e.textContent.slice(1).toLowerCase();sl.list=MENU.filter(m=>!q||m[1].toLowerCase().includes(q)||m[0].includes(q));if(!sl.list.length){closeSlash();return}sl.on=true;sl.bl=bl;sl.e=e;sl.i=Math.min(sl.i,sl.list.length-1);const r=e.getBoundingClientRect(),S_=$('#slash');S_.style.display='block';S_.style.left=r.left+'px';S_.style.top=Math.min(r.bottom+4,innerHeight-330)+'px';drawSlash()}
+function drawSlash(){const S_=$('#slash');S_.innerHTML='';sl.list.forEach((m,k)=>{const d=document.createElement('div');d.textContent=m[1];if(k===sl.i)d.className='sel';d.onmousedown=ev=>{ev.preventDefault();pick(m[0])};S_.appendChild(d)})}
+function closeSlash(){sl.on=false;$('#slash').style.display='none'}
+function pick(t){const bl=sl.bl;closeSlash();if(t==='rec'){bl.text='';render();recStart();return}bl.text='';bl.type=t;if(t==='db'){bl.cols=[{n:'名稱',t:'text'},{n:'狀態',t:'select',o:['待辦','進行中','完成']},{n:'日期',t:'date'}];bl.rows=[{c:['','待辦','']}];bl.view='table'}
+ const p=cur();if(!['text','h1','h2','h3','todo','bul','num','quote','callout','code'].includes(t)&&p.blocks.indexOf(bl)===p.blocks.length-1)p.blocks.push(b('text'));render();if(t==='link')pickPage(bl);else focusBlock(bl.id);save()}
+function pickPage(bl){const box=$('#mbox');box.innerHTML='<h3>選擇要連結的頁面</h3>';S.order.forEach(id=>{const d=document.createElement('div');d.className='vrow';d.style.cursor='pointer';d.textContent=(S.pages[id].icon||'')+' '+(S.pages[id].title||'無標題');d.onclick=()=>{bl.text=id;$('#modal').style.display='none';render();save()};box.appendChild(d)});$('#modal').style.display='flex'}
+function dbEl(bl){const w=document.createElement('div');w.className='db';const bar=document.createElement('div');bar.className='bar';
+ const vb=document.createElement('button');vb.className='btn';vb.textContent=bl.view==='table'?'▦ 表格':'▥ 看板';vb.onclick=()=>{bl.view=bl.view==='table'?'board':'table';render();save()};bar.appendChild(vb);
+ const ac=document.createElement('button');ac.className='btn';ac.textContent='＋ 欄位';ac.onclick=()=>{const n=prompt('欄位名稱');if(!n)return;const t=prompt('類型:text / number / select / check / date','text')||'text';const c={n,t};if(t==='select')c.o=(prompt('選項(逗號分隔)','A,B,C')||'').split(',').map(x=>x.trim()).filter(Boolean);bl.cols.push(c);bl.rows.forEach(r=>r.c.push(t==='check'?false:t==='select'?c.o[0]:''));render();save()};bar.appendChild(ac);
+ const ar=document.createElement('button');ar.className='btn';ar.textContent='＋ 列';ar.onclick=()=>{bl.rows.push({c:bl.cols.map(c=>c.t==='check'?false:c.t==='select'?c.o[0]:'')});render();save()};bar.appendChild(ar);
+ const so=document.createElement('button');so.className='btn';so.textContent='⇅ 依第一欄排序';so.onclick=()=>{bl.rows.sort((a,b)=>String(a.c[0]).localeCompare(String(b.c[0])));render();save()};bar.appendChild(so);w.appendChild(bar);
+ const sel=bl.cols.findIndex(c=>c.t==='select');
+ if(bl.view==='board'&&sel>=0){const B=document.createElement('div');B.className='board';bl.cols[sel].o.forEach(o=>{const c=document.createElement('div');c.className='col';c.innerHTML='<h5>'+esc(o)+'</h5>';c.ondragover=e=>e.preventDefault();c.ondrop=e=>{const k=+e.dataTransfer.getData('r');if(!isNaN(k)){bl.rows[k].c[sel]=o;render();save()}};bl.rows.forEach((r,k)=>{if(r.c[sel]!==o)return;const cd=document.createElement('div');cd.className='card';cd.draggable=true;cd.textContent=r.c[0]||'(無標題)';cd.ondragstart=e=>e.dataTransfer.setData('r',k);cd.onclick=()=>{const v=prompt('卡片標題',r.c[0]);if(v!==null){r.c[0]=v;render();save()}};c.appendChild(cd)});B.appendChild(c)});w.appendChild(B);return w}
+ const t=document.createElement('table');const hr=t.insertRow();bl.cols.forEach(c=>{const th=document.createElement('th');th.textContent=c.n;hr.appendChild(th)});hr.insertCell().textContent='';
+ bl.rows.forEach((r,k)=>{const tr=t.insertRow();bl.cols.forEach((c,j)=>{const td=tr.insertCell();if(c.t==='text'){td.contentEditable='plaintext-only';td.textContent=r.c[j]||'';td.oninput=()=>{r.c[j]=td.textContent;save()}}else if(c.t==='number'){const i=document.createElement('input');i.type='number';i.value=r.c[j];i.oninput=()=>{r.c[j]=i.value;save()};td.appendChild(i)}else if(c.t==='date'){const i=document.createElement('input');i.type='date';i.value=r.c[j];i.oninput=()=>{r.c[j]=i.value;save()};td.appendChild(i)}else if(c.t==='check'){const i=document.createElement('input');i.type='checkbox';i.checked=!!r.c[j];i.onchange=()=>{r.c[j]=i.checked;save()};td.appendChild(i)}else if(c.t==='select'){const s=document.createElement('select');c.o.forEach(o=>{const op=document.createElement('option');op.textContent=o;if(o===r.c[j])op.selected=true;s.appendChild(op)});s.onchange=()=>{r.c[j]=s.value;save()};td.appendChild(s)}});const x=tr.insertCell();x.textContent='✕';x.style.cursor='pointer';x.style.color='var(--mut)';x.style.minWidth='30px';x.onclick=()=>{bl.rows.splice(k,1);render();save()}});
+ const sm=bl.cols.map((c,j)=>c.t==='number'?'Σ'+c.n+'='+bl.rows.reduce((a,r)=>a+(+r.c[j]||0),0):'').filter(Boolean).join('  ');if(sm){const f=document.createElement('div');f.className='bar';f.textContent=sm;w.appendChild(t);w.appendChild(f)}else w.appendChild(t);return w}
+$('#title').oninput=e=>{cur().title=e.target.textContent;tree();save()};
+$('#title').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();focusBlock(cur().blocks[0].id)}};
+$('#blocks').onclick=e=>{if(e.target===$('#blocks')){const p=cur(),l=p.blocks[p.blocks.length-1];if(l.text||l.type!=='text'){const nb=b('text');p.blocks.push(nb);render();focusBlock(nb.id);save()}else focusBlock(l.id,true)}};
+$('#newp').onclick=()=>addPage();$('#search').oninput=tree;
+$('#fav').onclick=()=>{cur().fav=!cur().fav;render();save()};
+$('#del').onclick=()=>{if(confirm('刪除「'+(cur().title||'無標題')+'」和它的子頁面?'))delPage(S.cur),render(),save()};
+$('#theme').onclick=()=>{const t=document.documentElement.dataset.t==='dark'?'light':'dark';document.documentElement.dataset.t=t;try{localStorage.setItem('dn-theme',t)}catch(e){}};
+try{const t=localStorage.getItem('dn-theme');if(t)document.documentElement.dataset.t=t}catch(e){}
+$('#hist').onclick=()=>{const h=(S.hist[S.cur]||[]).slice().reverse(),box=$('#mbox');box.innerHTML='<h3>版本歷史</h3>'+(h.length?'':'<p>還沒有舊版本(編輯超過 30 秒會自動留存)</p>');h.forEach(v=>{const d=document.createElement('div');d.className='vrow';d.innerHTML='<span>'+new Date(v.at).toLocaleString()+'</span>';const bt=document.createElement('button');bt.className='btn';bt.textContent='還原';bt.onclick=()=>{const o=JSON.parse(v.s);cur().title=o.t;cur().blocks=o.b;$('#modal').style.display='none';render();save()};d.appendChild(bt);box.appendChild(d)});$('#modal').style.display='flex'};
+$('#modal').onclick=e=>{if(e.target.id==='modal')e.target.style.display='none'};
+const TPL=[{n:'每日筆記',title:'每日筆記',icon:'🗓',blocks:()=>[b('h2','今天重點'),b('todo','最重要的 1 件事'),b('todo'),b('h2','做了什麼'),b('bul'),b('h2','明天')]},{n:'會議記錄',title:'會議記錄',icon:'🗣',blocks:()=>[b('callout','日期 / 參加者'),b('h2','議程'),b('bul'),b('h2','決議'),b('todo'),b('h2','待辦負責人')]},{n:'讀書筆記',title:'讀書筆記',icon:'📚',blocks:()=>[b('h2','重點'),b('bul'),b('h2','我的想法'),b('quote'),b('h2','問題')]},{n:'專案看板',title:'專案看板',icon:'📌',blocks:()=>{const d=b('db');d.cols=[{n:'任務',t:'text'},{n:'狀態',t:'select',o:['待辦','進行中','完成']},{n:'截止',t:'date'}];d.rows=[{c:['第一個任務','待辦','']}];d.view='board';return[b('h2','專案看板'),d,b('text')]}}];
+$('#tmpl').onclick=()=>{const box=$('#mbox');box.innerHTML='<h3>選擇範本</h3>';TPL.forEach(t=>{const d=document.createElement('div');d.className='vrow';d.style.cursor='pointer';d.textContent=t.icon+' '+t.n;d.onclick=()=>{$('#modal').style.display='none';addPage(null,t)};box.appendChild(d)});$('#modal').style.display='flex'};
+function dl(name,txt,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type}));a.download=name;a.click()}
+$('#exp').onclick=()=>dl('duet-notes-backup.json',JSON.stringify(S),'application/json');
+$('#expmd').onclick=()=>{const p=cur();let n=0;const md=['# '+p.title].concat(p.blocks.map(x=>{n=x.type==='num'?n+1:0;const t=x.text;return{text:t,h1:'# '+t,h2:'## '+t,h3:'### '+t,todo:'- ['+(x.checked?'x':' ')+'] '+t,bul:'- '+t,num:n+'. '+t,quote:'> '+t,callout:'> 💡 '+t,code:'```\n'+t+'\n```',divider:'---',link:'',db:x.rows?'| '+x.cols.map(c=>c.n).join(' | ')+' |\n|'+x.cols.map(()=>'---').join('|')+'|\n'+x.rows.map(r=>'| '+r.c.join(' | ')+' |').join('\n'):''}[x.type]})).join('\n\n');dl((p.title||'page')+'.md',md,'text/markdown')};
+$('#imp').onclick=()=>$('#file').click();$('#file').onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(t=>{try{const o=JSON.parse(t);if(!o.pages)throw 0;if(confirm('用匯入的資料覆蓋目前所有頁面?(取消=保留目前)')){S=o;render();save()}}catch(x){alert('不是有效的備份檔')}})};
+addEventListener('keydown',e=>{if(e.ctrlKey&&e.key==='k'){e.preventDefault();$('#search').focus()}});
+addEventListener('click',e=>{if(!e.target.closest('#slash'))closeSlash()});
+addEventListener('beforeunload',()=>{try{localStorage.setItem('duetnotes',JSON.stringify(S))}catch(e){}});
+render();
+// ===== 會議錄音(即時逐字稿 + AI 整理) =====
+const REC={on:false,r:null,final:'',interim:'',t0:0,stream:null,ctx:null,an:null,raf:0,timer:0,pid:null,lang:'zh-TW',show:true,wl:null};
+const gkey=()=>{try{return localStorage.getItem('dn-gkey')||''}catch(e){return''}};
+$('#gset').onclick=()=>{const k=prompt('貼上 Gemini API key(免費,只存在這台裝置;沒有的話到 aistudio.google.com/apikey 申請)',gkey());if(k!==null)try{localStorage.setItem('dn-gkey',k.trim())}catch(e){}};
+$('#menu').onclick=e=>{e.stopPropagation();document.body.classList.toggle('sopen')};
+$('#main').addEventListener('click',()=>document.body.classList.remove('sopen'));
+function recUI(){const R=$('#recbar');R.innerHTML='';
+ if(!REC.on){const sel=document.createElement('select');sel.innerHTML='<option value="zh-TW">中文</option><option value="en-US">English</option><option value="ja-JP">日本語</option>';sel.value=REC.lang;sel.onchange=()=>REC.lang=sel.value;const g=document.createElement('button');g.className='go';g.textContent='🎙 開始錄音';g.onclick=recStart;R.append(sel,g);$('#tx').style.display='none';return}
+ const d=document.createElement('span');d.className='dot';const tm=document.createElement('span');tm.id='tm';tm.textContent='0:00';const cv=document.createElement('canvas');cv.id='wave';cv.width=220;cv.height=56;
+ const ch=document.createElement('button');ch.textContent=REC.show?'逐字稿 ▾':'逐字稿 ▸';ch.onclick=()=>{REC.show=!REC.show;recUI();drawTx()};
+ const st=document.createElement('button');st.className='stop';st.textContent='■ 結束';st.onclick=()=>recStop();R.append(d,tm,cv,ch,st)}
+function drawTx(){const t=$('#tx');if(!REC.on||!REC.show){t.style.display='none';return}t.style.display='block';if(!REC.final&&!REC.interim)t.innerHTML='<i>(請開始說話…)</i>';else t.innerHTML=esc(REC.final)+'<i>'+esc(REC.interim)+'</i>';t.scrollTop=t.scrollHeight}
+function wave(){const cv=$('#wave');if(!cv||!REC.on)return;const c=cv.getContext('2d');c.clearRect(0,0,cv.width,cv.height);const n=22,w=cv.width/n;let a=null;if(REC.an){a=new Uint8Array(REC.an.frequencyBinCount);REC.an.getByteFrequencyData(a)}c.fillStyle=getComputedStyle(document.body).color;c.globalAlpha=.55;for(let i=0;i<n;i++){const v=a?a[2+i*2]/255:(Math.sin(Date.now()/200+i)+1)/4;const h=Math.max(4,v*cv.height);c.fillRect(i*w+2,(cv.height-h)/2,w-6,h)}REC.raf=requestAnimationFrame(wave)}
+async function recStart(){
+ const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!SR){alert('這個瀏覽器不支援即時語音辨識。iPhone 請用 Safari,電腦用 Chrome / Edge。');return}
+ const now=new Date(),pad=n=>String(n).padStart(2,'0');
+ addPage(null,{title:'會議 @'+(now.getMonth()+1)+'/'+now.getDate()+' '+pad(now.getHours())+':'+pad(now.getMinutes()),icon:'🗣',blocks:()=>[b('h2','我的筆記'),b('text')]});
+ REC.pid=S.cur;REC.final='';REC.interim='';REC.on=true;REC.t0=Date.now();
+ try{REC.stream=await navigator.mediaDevices.getUserMedia({audio:true});REC.ctx=new (window.AudioContext||window.webkitAudioContext)();REC.an=REC.ctx.createAnalyser();REC.an.fftSize=128;REC.ctx.createMediaStreamSource(REC.stream).connect(REC.an)}catch(e){REC.an=null}
+ try{if(navigator.wakeLock)REC.wl=await navigator.wakeLock.request('screen')}catch(e){}
+ const r=new SR();r.lang=REC.lang;r.continuous=true;r.interimResults=true;REC.r=r;
+ r.onresult=e=>{let it='';for(let i=e.resultIndex;i<e.results.length;i++){const t=e.results[i][0].transcript;if(e.results[i].isFinal)REC.final+=t+'\n';else it+=t}REC.interim=it;drawTx()};
+ r.onend=()=>{if(REC.on){try{r.start()}catch(e){}}};
+ r.onerror=e=>{if(e.error==='not-allowed'||e.error==='service-not-allowed'){alert('麥克風或語音辨識被拒絕了,請在瀏覽器設定允許。');recStop(true)}};
+ try{r.start()}catch(e){}
+ recUI();drawTx();wave();REC.timer=setInterval(()=>{const s=Math.floor((Date.now()-REC.t0)/1000),el=$('#tm');if(el)el.textContent=Math.floor(s/60)+':'+String(s%60).padStart(2,'0')},500)}
+async function recStop(abort){
+ const was=REC.on;REC.on=false;clearInterval(REC.timer);cancelAnimationFrame(REC.raf);try{REC.r&&REC.r.stop()}catch(e){}try{REC.stream&&REC.stream.getTracks().forEach(t=>t.stop())}catch(e){}try{REC.ctx&&REC.ctx.close()}catch(e){}try{REC.wl&&REC.wl.release()}catch(e){}REC.an=null;
+ const tx=(REC.final+REC.interim).trim();recUI();if(!was||abort===true)return;
+ const p=S.pages[REC.pid];if(!p)return;
+ if(!tx){p.blocks.push(b('callout','沒有聽到聲音,所以沒有逐字稿。'));if(S.cur===p.id)render();save();return}
+ const notes=p.blocks.filter(x=>x.text).map(x=>x.text).join('\n');
+ p.blocks.push(b('divider'));const sm=b('callout',gkey()?'AI 整理中…':'還沒設定 AI 金鑰,所以只有逐字稿。按右上角「⚙ AI 金鑰」貼 Gemini key 後,下次錄音會自動整理。');p.blocks.push(sm);
+ const lines=tx.split('\n').filter(Boolean);
+ const addTx=()=>{p.blocks.push(b('h3','逐字稿'));lines.forEach(l=>p.blocks.push(b('text',l)))};
+ if(S.cur===p.id)render();save();
+ if(!gkey()){addTx();if(S.cur===p.id)render();save();return}
+ try{const o=await summarize(tx,notes);const i=p.blocks.indexOf(sm);const nb=[];
+  if(o.title&&/^會議 @/.test(p.title))p.title=p.title+' · '+o.title;
+  nb.push(b('h2','AI 摘要'),b('callout',o.summary||''));
+  (o.sections||[]).forEach(sc=>{nb.push(b('h2',sc.heading||''));(sc.bullets||[]).forEach(x=>nb.push(b('bul',x)));(sc.exam||[]).forEach(x=>nb.push(b('callout','⚠ 考試注意:'+x)))});
+  if((o.points||[]).length){nb.push(b('h3','重點'));o.points.forEach(x=>nb.push(b('bul',x)))}
+  if((o.todos||[]).length){nb.push(b('h3','待辦'));o.todos.forEach(x=>nb.push(b('todo',x)))}
+  p.blocks.splice(i,1,...nb);
+ }catch(e){sm.text='AI 整理失敗('+(e.message||e)+'),逐字稿仍已保存。檢查金鑰或網路。'}
+ addTx();if(S.cur===p.id)render();save();tree()}
+async function summarize(tx,notes){const prompt='你是頂尖的筆記整理助手,把上課/會議的語音辨識逐字稿(可能有錯字、沒標點,請依上下文修正)整理成像 Notion AI 會議記錄那樣的結構化筆記。用繁體中文輸出 JSON:{"title":"8字內標題","summary":"2-3句整體摘要","sections":[{"heading":"主題小標","bullets":["完整的重點句,含定義、例子、因果;一個主題 3~8 條"],"exam":["老師強調或可能會考的點,沒有就空陣列"]}],"points":[],"todos":["待辦或作業,寫出做什麼/何時;沒有就空陣列"]}。要依主題分段、內容詳細,不要只列大綱;只根據內容,不要編造。\n使用者手寫筆記:\n'+notes+'\n逐字稿:\n'+tx;
+ const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key='+encodeURIComponent(gkey()),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{responseMimeType:'application/json'}})});
+ if(!r.ok)throw new Error('HTTP '+r.status);const j=await r.json();return JSON.parse(j.candidates[0].content.parts[0].text)}
+recUI();
+if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script></body></html>
